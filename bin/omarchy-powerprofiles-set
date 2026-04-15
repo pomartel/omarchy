@@ -5,18 +5,27 @@
 #
 # Usage: omarchy-powerprofiles-set <ac|battery>
 
+POWERPROFILES_ENV="$HOME/.config/omarchy/powerprofiles.env"
+
+if [[ -f $POWERPROFILES_ENV ]]; then
+  source "$POWERPROFILES_ENV"
+fi
+
+AC_POWER_PROFILE=${AC_POWER_PROFILE:-performance}
+BATTERY_POWER_PROFILE=${BATTERY_POWER_PROFILE:-balanced}
+
 mapfile -t profiles < <(powerprofilesctl list | awk '/^\s*[* ]\s*[a-zA-Z0-9\-]+:$/ { gsub(/^[*[:space:]]+|:$/,""); print }')
 
 case "$1" in
   ac)
     # Prefer performance, fall back to balanced
-    if [[ " ${profiles[*]} " == *" performance "* ]]; then
-      powerprofilesctl set performance
+    if [[ " ${profiles[*]} " == *" $AC_POWER_PROFILE "* ]]; then
+      powerprofilesctl set "$AC_POWER_PROFILE"
     else
-      powerprofilesctl set balanced
+      powerprofilesctl set "$BATTERY_POWER_PROFILE"
     fi
     ;;
   battery)
-    powerprofilesctl set balanced
+    powerprofilesctl set "$BATTERY_POWER_PROFILE"
     ;;
 esac
